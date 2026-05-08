@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title default="LearnAI" suffix=" · LearnAI">
+      {assigns[:page_title]}
+    </.live_title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
+    </script>
+  </head>
+  <body>
+    <nav class="bg-white border-b border-slate-200">
+      <div class="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6 lg:px-8">
+        <.link navigate={~p"/"} class="flex items-center gap-2.5 mr-auto">
+          <svg width="28" height="34" viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 0C6.268 0 0 6.268 0 14C0 24.5 14 34 14 34C14 34 28 24.5 28 14C28 6.268 21.732 0 14 0Z" fill="#4f46e5"/>
+            <path d="M14 7L15.8 12.2H21.4L16.8 15.4L18.4 20.8L14 17.6L9.6 20.8L11.2 15.4L6.6 12.2H12.2L14 7Z" fill="#fbbf24"/>
+          </svg>
+          <span class="font-bold text-lg" style="font-family: 'Outfit', sans-serif;">
+            <span class="text-slate-900">Learn</span><span class="text-indigo-600">AI</span>
+          </span>
+        </.link>
+        <%= if @current_scope do %>
+          <span class="text-xs bg-slate-100 text-slate-500 rounded-full px-2.5 py-1">
+            {@current_scope.user.email}
+          </span>
+          <.link navigate={~p"/dashboard"} class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">{gettext("Dashboard")}</.link>
+          <.link navigate={~p"/profile"} class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">{gettext("Profile")}</.link>
+          <.link href={~p"/users/settings"} class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">{gettext("Settings")}</.link>
+          <.link href={~p"/users/log-out"} method="delete" class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">{gettext("Log out")}</.link>
+        <% else %>
+          <.link href={~p"/users/register"} class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">{gettext("Register")}</.link>
+          <.link href={~p"/users/log-in"} class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">{gettext("Log in")}</.link>
+        <% end %>
+
+        <%!-- Language toggle --%>
+        <div class="flex items-center gap-1 ml-2">
+          <.link
+            href={~p"/set-locale?locale=en"}
+            class={[
+              "rounded px-2 py-1 text-xs font-medium transition-colors",
+              assigns[:locale] != "es" && "bg-indigo-100 text-indigo-700",
+              assigns[:locale] == "es" && "text-slate-400 hover:text-slate-600"
+            ]}
+          >EN</.link>
+          <.link
+            href={~p"/set-locale?locale=es"}
+            class={[
+              "rounded px-2 py-1 text-xs font-medium transition-colors",
+              assigns[:locale] == "es" && "bg-indigo-100 text-indigo-700",
+              assigns[:locale] != "es" && "text-slate-400 hover:text-slate-600"
+            ]}
+          >ES</.link>
+        </div>
+      </div>
+    </nav>
+    {@inner_content}
+  </body>
+</html>

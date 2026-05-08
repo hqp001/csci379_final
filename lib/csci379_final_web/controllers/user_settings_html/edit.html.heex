@@ -1,0 +1,52 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <div class="text-center">
+    <.header>
+      Account Settings
+      <:subtitle>Manage your account email address and password settings</:subtitle>
+    </.header>
+  </div>
+
+  <.form :let={f} for={@email_changeset} action={~p"/users/settings"} id="update_email">
+    <input type="hidden" name="action" value="update_email" />
+
+    <.input
+      field={f[:email]}
+      type="email"
+      label="Email"
+      autocomplete="username"
+      spellcheck="false"
+      required
+    />
+
+    <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
+  </.form>
+
+  <div class="relative my-6">
+    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-slate-200"></div></div>
+    <div class="relative flex justify-center text-xs"><span class="bg-white px-3 text-slate-400 font-medium">Password</span></div>
+  </div>
+
+  <.form :let={f} for={@password_changeset} action={~p"/users/settings"} id="update_password">
+    <input type="hidden" name="action" value="update_password" />
+
+    <.input
+      field={f[:password]}
+      type="password"
+      label="New password"
+      autocomplete="new-password"
+      spellcheck="false"
+      required
+    />
+    <.input
+      field={f[:password_confirmation]}
+      type="password"
+      label="Confirm new password"
+      autocomplete="new-password"
+      spellcheck="false"
+      required
+    />
+    <.button variant="primary" phx-disable-with="Changing...">
+      Save Password
+    </.button>
+  </.form>
+</Layouts.app>

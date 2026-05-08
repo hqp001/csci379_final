@@ -1,0 +1,84 @@
+msgid ""
+msgstr ""
+"Language: es\n"
+
+msgid "Dashboard"
+msgstr "Panel"
+
+msgid "Profile"
+msgstr "Perfil"
+
+msgid "Settings"
+msgstr "Configuración"
+
+msgid "Log out"
+msgstr "Cerrar sesión"
+
+msgid "Register"
+msgstr "Registrarse"
+
+msgid "Log in"
+msgstr "Iniciar sesión"
+
+msgid "My Stories"
+msgstr "Mis Historias"
+
+msgid "New Story"
+msgstr "Nueva Historia"
+
+msgid "Recent Activity"
+msgstr "Actividad Reciente"
+
+msgid "XP Progress"
+msgstr "Progreso de XP"
+
+msgid "Scenes"
+msgstr "Escenas"
+
+msgid "Quests"
+msgstr "Misiones"
+
+msgid "Accuracy"
+msgstr "Precisión"
+
+msgid "Back to Story"
+msgstr "Volver a la Historia"
+
+msgid "Submit"
+msgstr "Enviar"
+
+msgid "Next Quest →"
+msgstr "Siguiente Misión →"
+
+msgid "Complete Scene →"
+msgstr "Completar Escena →"
+
+msgid "Scene Complete!"
+msgstr "¡Escena Completada!"
+
+msgid "Already Completed"
+msgstr "Ya Completado"
+
+msgid "Start"
+msgstr "Comenzar"
+
+msgid "What do you want to explore?"
+msgstr "¿Qué quieres explorar?"
+
+msgid "Enter any topic and we'll build an interactive story for you."
+msgstr "Ingresa cualquier tema y crearemos una historia interactiva para ti."
+
+msgid "Create"
+msgstr "Crear"
+
+msgid "Building your story..."
+msgstr "Construyendo tu historia..."
+
+msgid "We can't find the internet"
+msgstr "No podemos encontrar internet"
+
+msgid "Attempting to reconnect"
+msgstr "Intentando reconectar"
+
+msgid "Something went wrong!"
+msgstr "¡Algo salió mal!"
