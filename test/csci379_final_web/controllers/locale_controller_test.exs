@@ -20,4 +20,13 @@ defmodule Csci379FinalWeb.LocaleControllerTest do
     conn = get(conn, ~p"/set-locale?locale=en")
     assert get_session(conn, :locale) == "en"
   end
+
+  test "LocalePlug uses locale from session when present", %{conn: conn} do
+    conn =
+      conn
+      |> init_test_session(%{locale: "es"})
+      |> get(~p"/")
+
+    assert conn.assigns[:locale] == "es"
+  end
 end

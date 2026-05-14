@@ -11,7 +11,7 @@ defmodule Csci379FinalWeb.StoryLive.New do
      |> assign(:status, :idle)
      |> assign(:progress, [])
      |> assign(:error, nil)
-     |> allow_upload(:source_file, accept: ~w(.txt .md), max_entries: 1, max_file_size: 500_000)}
+     |> allow_upload(:source_file, accept: ~w(.txt .md .pdf), max_entries: 1, max_file_size: 10_000_000)}
   end
 
   def handle_event("validate", %{"topic" => topic}, socket) do
@@ -22,25 +22,31 @@ defmodule Csci379FinalWeb.StoryLive.New do
     topic = String.trim(topic)
 
     if topic == "" do
-      {:noreply, assign(socket, :error, "Please enter a topic.")}
+      {:noreply, assign(socket, :error, gettext("Please enter a topic."))}
     else
-      file_context =
-        consume_uploaded_entries(socket, :source_file, fn %{path: path}, _entry ->
-          {:ok, File.read!(path)}
-        end)
-        |> List.first()
+      gen_params =
+        case consume_uploaded_entries(socket, :source_file, fn %{path: path}, entry ->
+          if String.ends_with?(entry.client_name, ".pdf") do
+            {:ok, {:pdf, File.read!(path), entry.client_name}}
+          else
+            {:ok, {:text, File.read!(path)}}
+          end
+        end) do
+          [{:pdf, data, name}] ->
+            %{topic: topic, pdf_data: Base.encode64(data), pdf_name: name}
 
-      full_prompt =
-        if file_context && file_context != "" do
-          "#{topic}\n\nAdditional context from uploaded document:\n#{String.slice(file_context, 0, 4000)}"
-        else
-          topic
+          [{:text, text}] ->
+            full = "#{topic}\n\nAdditional context from uploaded document:\n#{String.slice(text, 0, 4000)}"
+            %{topic: full, pdf_data: nil, pdf_name: nil}
+
+          [] ->
+            %{topic: topic, pdf_data: nil, pdf_name: nil}
         end
 
       case Stories.create_story_async(topic, socket.assigns.current_scope) do
         {:ok, story} ->
           Phoenix.PubSub.subscribe(Csci379Final.PubSub, "story:#{story.id}")
-          Stories.start_generation(story.id, full_prompt)
+          Stories.start_generation(story.id, gen_params)
 
           {:noreply,
            socket
@@ -49,7 +55,7 @@ defmodule Csci379FinalWeb.StoryLive.New do
            |> assign(:error, nil)}
 
         {:error, _} ->
-          {:noreply, assign(socket, :error, "Something went wrong. Please try again.")}
+          {:noreply, assign(socket, :error, gettext("Something went wrong. Please try again."))}
       end
     end
   end
@@ -78,7 +84,7 @@ defmodule Csci379FinalWeb.StoryLive.New do
           <h1 class="mb-2 text-center text-4xl font-bold">
             {gettext("What do you want to explore?")}
           </h1>
-          <p class="mb-8 text-center text-slate-500">
+          <p class="mb-8 text-center text-slate-500 dark:text-slate-400">
             {gettext("Enter any topic and we'll build an interactive story for you.")}
           </p>
 
@@ -88,9 +94,9 @@ defmodule Csci379FinalWeb.StoryLive.New do
                 type="text"
                 name="topic"
                 value={@topic}
-                placeholder="e.g. The Roman Empire, Quantum Physics, JavaScript..."
+                placeholder={gettext("e.g. The Roman Empire, Quantum Physics, JavaScript...")}
                 autofocus
-                class="block w-full rounded-xl border border-slate-200 bg-white px-5 py-4 text-base text-slate-900 placeholder:text-slate-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors"
+                class="block w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-5 py-4 text-base text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-colors"
               />
               <button type="submit" class="rounded-xl bg-amber-400 px-6 py-4 text-base font-bold text-slate-900 hover:bg-amber-300 transition-colors shadow-sm">
                 {gettext("Create")}
@@ -98,8 +104,8 @@ defmodule Csci379FinalWeb.StoryLive.New do
             </div>
 
             <div class="mt-4">
-              <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 px-5 py-3 text-sm text-slate-500 hover:border-indigo-400 hover:bg-indigo-50/50 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+              <label class="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-600 px-5 py-3 text-sm text-slate-500 dark:text-slate-400 hover:border-indigo-400 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/20 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0 text-slate-400 dark:text-slate-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
                 </svg>
                 <span>
@@ -108,7 +114,7 @@ defmodule Csci379FinalWeb.StoryLive.New do
                       <% [entry | _] -> %>
                         <span class="text-indigo-600 font-medium">{entry.client_name}</span>
                       <% [] -> %>
-                        Upload a reference document <span class="text-slate-400">.txt or .md, optional</span>
+                        {gettext("Upload a reference document")} <span class="text-slate-400">{gettext(".txt, .md, or .pdf — optional")}</span>
                     <% end %>
                   <% end %>
                 </span>

@@ -119,6 +119,22 @@ defmodule Csci379FinalWeb.UserAuthTest do
       assert %{max_age: 0} = conn.resp_cookies[@remember_me_cookie]
       assert redirected_to(conn) == ~p"/"
     end
+
+    test "broadcasts disconnect to live socket when live_socket_id present", %{conn: conn, user: user} do
+      user_token = Accounts.generate_user_session_token(user)
+      live_socket_id = "users_sessions:#{Base.url_encode64(user_token)}"
+
+      Csci379FinalWeb.Endpoint.subscribe(live_socket_id)
+
+      conn =
+        conn
+        |> put_session(:user_token, user_token)
+        |> put_session(:live_socket_id, live_socket_id)
+        |> fetch_cookies()
+        |> UserAuth.log_out_user()
+
+      assert redirected_to(conn) == ~p"/"
+    end
   end
 
   describe "fetch_current_scope_for_user/2" do

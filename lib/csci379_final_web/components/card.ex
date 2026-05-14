@@ -17,9 +17,9 @@ defmodule Csci379FinalWeb.Components.Card do
   def card(assigns) do
     ~H"""
     <div class={[
-      "rounded-2xl border border-slate-200 bg-white",
+      "rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800",
       @variant == "elevated" && "shadow-md",
-      @variant == "flat" && "border-0 bg-slate-50",
+      @variant == "flat" && "border-0 bg-slate-50 dark:bg-slate-800/50",
       @class
     ]}>
       {render_slot(@inner_block)}

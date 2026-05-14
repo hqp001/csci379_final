@@ -31,19 +31,16 @@ const XpChart = {
       if (this.chart) this.chart.destroy()
       const ctx = this.el.getContext("2d")
       this.chart = new window.Chart(ctx, {
-        type: "line",
+        type: "bar",
         data: {
           labels,
           datasets: [{
-            label: "Cumulative XP",
+            label: "XP Earned",
             data: values,
+            backgroundColor: "rgba(79,70,229,0.7)",
             borderColor: "#4f46e5",
-            backgroundColor: "rgba(79,70,229,0.08)",
-            borderWidth: 2,
-            pointRadius: 4,
-            pointBackgroundColor: "#4f46e5",
-            tension: 0.3,
-            fill: true,
+            borderWidth: 1,
+            borderRadius: 6,
           }]
         },
         options: {
@@ -61,11 +58,54 @@ const XpChart = {
   destroyed() { this.chart?.destroy() }
 }
 
+const AccuracyChart = {
+  mounted() {
+    this.handleEvent("accuracy_data", ({ correct, incorrect }) => {
+      if (this.chart) this.chart.destroy()
+      const ctx = this.el.getContext("2d")
+      this.chart = new window.Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Correct", "Incorrect"],
+          datasets: [{
+            data: [correct, incorrect],
+            backgroundColor: ["#10b981", "#ef4444"],
+            borderWidth: 0,
+            hoverOffset: 6,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: "68%",
+          plugins: {
+            legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 }, padding: 10 } }
+          }
+        }
+      })
+    })
+  },
+  destroyed() { this.chart?.destroy() }
+}
+
+// Dark mode toggle — event-delegated so it survives LiveView DOM patching
+window.addEventListener("click", (e) => {
+  if (e.target.closest("#dark-mode-toggle")) {
+    const isDark = document.documentElement.classList.toggle("dark")
+    localStorage.setItem("theme", isDark ? "dark" : "light")
+  }
+  // Close user dropdown when clicking outside
+  const dropdown = document.getElementById("user-dropdown")
+  if (dropdown && !dropdown.classList.contains("hidden") && !e.target.closest("#user-menu")) {
+    dropdown.classList.add("hidden")
+  }
+})
+
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, XpChart},
+  hooks: {...colocatedHooks, XpChart, AccuracyChart},
 })
 
 // Show progress bar on live navigation and form submits

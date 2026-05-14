@@ -6,7 +6,7 @@ defmodule Csci379Final.AITest do
 
   describe "AI facade" do
     test "generate_story/1 delegates to configured adapter" do
-      assert {:ok, data} = AI.generate_story("test topic")
+      assert {:ok, data} = AI.generate_story(%{topic: "test topic", pdf_data: nil, pdf_name: nil})
       assert is_map(data)
       assert Map.has_key?(data, "title")
       assert Map.has_key?(data, "chapters")
@@ -21,7 +21,7 @@ defmodule Csci379Final.AITest do
 
   describe "StubAdapter" do
     test "generate_story/1 returns valid story structure" do
-      assert {:ok, data} = StubAdapter.generate_story("any topic")
+      assert {:ok, data} = StubAdapter.generate_story(%{topic: "any topic", pdf_data: nil, pdf_name: nil})
       assert is_binary(data["title"])
       assert is_list(data["chapters"])
       assert length(data["chapters"]) > 0

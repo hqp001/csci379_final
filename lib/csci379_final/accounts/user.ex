@@ -106,6 +106,13 @@ defmodule Csci379Final.Accounts.User do
     end
   end
 
+  def registration_changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, [:email, :password])
+    |> validate_email(opts)
+    |> validate_password(opts)
+  end
+
   def oauth_registration_changeset(user, attrs) do
     now = DateTime.utc_now(:second)
 

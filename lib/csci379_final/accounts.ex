@@ -76,8 +76,12 @@ defmodule Csci379Final.Accounts do
   """
   def register_user(attrs) do
     %User{}
-    |> User.email_changeset(attrs)
+    |> User.registration_changeset(attrs)
     |> Repo.insert()
+  end
+
+  def change_user_registration(%User{} = user, attrs \\ %{}) do
+    User.registration_changeset(user, attrs, hash_password: false, validate_unique: false)
   end
 
   ## Settings
@@ -292,6 +296,46 @@ defmodule Csci379Final.Accounts do
     user
     |> User.confirm_changeset()
     |> Repo.update()
+  end
+
+  def deliver_confirmation_instructions(%User{} = user, confirmation_url_fun)
+      when is_function(confirmation_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "confirm")
+    Repo.insert!(user_token)
+    UserNotifier.deliver_confirmation_instructions(user, confirmation_url_fun.(encoded_token))
+  end
+
+  def confirm_user_by_token(token) do
+    with {:ok, query} <- UserToken.verify_confirm_token_query(token),
+         {user, token_struct} <- Repo.one(query) do
+      {:ok, _} = Repo.update(User.confirm_changeset(user))
+      Repo.delete(token_struct)
+      :ok
+    else
+      _ -> :error
+    end
+  end
+
+  def deliver_reset_password_instructions(%User{} = user, reset_url_fun)
+      when is_function(reset_url_fun, 1) do
+    {encoded_token, user_token} = UserToken.build_email_token(user, "reset_password")
+    Repo.insert!(user_token)
+    UserNotifier.deliver_reset_password_instructions(user, reset_url_fun.(encoded_token))
+  end
+
+  def get_user_by_reset_password_token(token) do
+    with {:ok, query} <- UserToken.verify_reset_password_token_query(token),
+         {user, _token} <- Repo.one(query) do
+      user
+    else
+      _ -> nil
+    end
+  end
+
+  def reset_user_password(user, attrs) do
+    user
+    |> User.password_changeset(attrs)
+    |> update_user_and_delete_all_tokens()
   end
 
   ## OAuth

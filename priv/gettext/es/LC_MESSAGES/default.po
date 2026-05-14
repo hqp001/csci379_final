@@ -82,3 +82,72 @@ msgstr "Intentando reconectar"
 
 msgid "Something went wrong!"
 msgstr "¡Algo salió mal!"
+
+msgid "No stories yet."
+msgstr "Aún no hay historias."
+
+msgid "Create your first story to get started."
+msgstr "Crea tu primera historia para comenzar."
+
+msgid "Delete story"
+msgstr "Eliminar historia"
+
+msgid "Delete this story?"
+msgstr "¿Eliminar esta historia?"
+
+msgid "This cannot be undone. All chapters, scenes, and quests will be deleted."
+msgstr "Esto no se puede deshacer. Se eliminarán todos los capítulos, escenas y misiones."
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "This scene is locked."
+msgstr "Esta escena está bloqueada."
+
+msgid "Could not grade your answer."
+msgstr "No se pudo calificar tu respuesta."
+
+msgid "You earned %{xp} XP on this scene."
+msgstr "Ganaste %{xp} XP en esta escena."
+
+msgid "Grading your answer…"
+msgstr "Calificando tu respuesta…"
+
+msgid "Type your answer…"
+msgstr "Escribe tu respuesta…"
+
+msgid "Write your answer…"
+msgstr "Redacta tu respuesta…"
+
+msgid "correct"
+msgstr "correctas"
+
+msgid "Correct!"
+msgstr "¡Correcto!"
+
+msgid "Incorrect."
+msgstr "Incorrecto."
+
+msgid "Please enter a topic."
+msgstr "Por favor ingresa un tema."
+
+msgid "Something went wrong. Please try again."
+msgstr "Algo salió mal. Por favor inténtalo de nuevo."
+
+msgid "e.g. The Roman Empire, Quantum Physics, JavaScript..."
+msgstr "ej. El Imperio Romano, Física Cuántica, JavaScript..."
+
+msgid "Upload a reference document"
+msgstr "Sube un documento de referencia"
+
+msgid ".txt, .md, or .pdf — optional"
+msgstr ".txt, .md o .pdf — opcional"
+
+msgid "Chapter"
+msgstr "Capítulo"
+
+msgid "quests"
+msgstr "misiones"

@@ -90,5 +90,11 @@ defmodule Csci379FinalWeb.Router do
     get "/users/log-in", UserSessionController, :new
     post "/users/log-in", UserSessionController, :create
     delete "/users/log-out", UserSessionController, :delete
+
+    get "/users/confirm/:token", UserConfirmationController, :confirm
+    get "/users/reset-password", UserPasswordResetController, :new
+    post "/users/reset-password", UserPasswordResetController, :create
+    get "/users/reset-password/:token", UserPasswordResetController, :edit
+    put "/users/reset-password/:token", UserPasswordResetController, :update
   end
 end

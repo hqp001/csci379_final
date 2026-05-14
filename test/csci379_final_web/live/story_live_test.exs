@@ -38,6 +38,54 @@ defmodule Csci379FinalWeb.StoryLiveTest do
 
       assert render(lv) =~ "Building your story"
     end
+
+    test "validate event updates topic assign", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/new")
+      lv |> form("form", %{topic: "Quantum physics"}) |> render_change()
+      assert render(lv) =~ "Quantum physics"
+    end
+
+    test "receives progress messages during generation", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/new")
+      lv |> form("form", %{topic: "The Roman Empire"}) |> render_submit()
+      send(lv.pid, {:progress, "Analyzing your topic..."})
+      assert render(lv) =~ "Analyzing"
+    end
+
+    test "navigates to story on story_ready message", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/new")
+      lv |> form("form", %{topic: "The Roman Empire"}) |> render_submit()
+
+      send(lv.pid, {:story_ready, 999})
+      assert_redirect(lv, "/stories/999")
+    end
+
+    test "shows error on story_failed message", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/new")
+      lv |> form("form", %{topic: "The Roman Empire"}) |> render_submit()
+      send(lv.pid, {:story_failed, "Something went wrong."})
+      assert render(lv) =~ "Something went wrong"
+    end
+
+    test "attaches uploaded file content to the generation prompt", %{conn: conn} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/new")
+
+      file =
+        file_input(lv, "form", :source_file, [
+          %{
+            last_modified: 1_594_171_879_000,
+            name: "context.txt",
+            content: "Some reference context",
+            size: 22,
+            type: "text/plain"
+          }
+        ])
+
+      render_upload(file, "context.txt")
+
+      lv |> form("form", %{topic: "The Roman Empire"}) |> render_submit()
+      assert render(lv) =~ "Building your story"
+    end
   end
 
   describe "StoryLive.Show" do

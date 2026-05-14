@@ -19,7 +19,7 @@ defmodule Csci379FinalWeb.UserRegistrationControllerTest do
   end
 
   describe "POST /users/register" do
-    test "creates account and logs in", %{conn: conn} do
+    test "creates account and sends confirmation email", %{conn: conn} do
       email = unique_user_email()
 
       conn =
@@ -27,9 +27,9 @@ defmodule Csci379FinalWeb.UserRegistrationControllerTest do
           "user" => valid_user_attributes(email: email)
         })
 
-      assert get_session(conn, :user_token)
-      assert redirected_to(conn) == ~p"/"
-      assert conn.assigns.flash["info"] =~ "Account created successfully"
+      refute get_session(conn, :user_token)
+      assert redirected_to(conn) == ~p"/users/log-in"
+      assert conn.assigns.flash["info"] =~ "Check your email"
     end
 
     test "render errors for invalid data", %{conn: conn} do

@@ -1,5 +1,53 @@
+defmodule Csci379Final.ListOptionsAdapter do
+  @behaviour Csci379Final.AI.GeneratorPort
+
+  @impl true
+  def generate_story(_params) do
+    {:ok,
+     %{
+       "title" => "List Opts Story",
+       "chapters" => [
+         %{
+           "title" => "Ch 1",
+           "description" => "desc",
+           "scenes" => [
+             %{
+               "title" => "Sc 1",
+               "description" => "desc",
+               "quests" => [
+                 %{
+                   "type" => "multiple_choice",
+                   "question" => "Pick one?",
+                   "options" => [%{"key" => "a", "text" => "Alpha"}, %{"key" => "b", "text" => "Beta"}],
+                   "correct_answer" => "a",
+                   "explanation" => "Alpha."
+                 }
+               ]
+             }
+           ]
+         }
+       ]
+     }}
+  end
+
+  @impl true
+  def grade_answer(_q, _a), do: {:ok, %{is_correct: true, feedback: "ok"}}
+end
+
+defmodule Csci379Final.FailAdapter do
+  @behaviour Csci379Final.AI.GeneratorPort
+  def generate_story(_params), do: {:error, "simulated failure"}
+  def grade_answer(_q, _a), do: {:error, "simulated failure"}
+end
+
+defmodule Csci379Final.CrashAdapter do
+  @behaviour Csci379Final.AI.GeneratorPort
+  def generate_story(_params), do: raise("boom")
+  def grade_answer(_q, _a), do: raise("boom")
+end
+
 defmodule Csci379Final.StoriesTest do
-  use Csci379Final.DataCase, async: true
+  use Csci379Final.DataCase, async: false
 
   import Csci379Final.AccountsFixtures
   import Csci379Final.StoriesFixtures
@@ -68,6 +116,71 @@ defmodule Csci379Final.StoriesTest do
       other_scope = user_scope_fixture()
       story = story_fixture(other_scope)
       assert_raise FunctionClauseError, fn -> Stories.delete_story(story, scope) end
+    end
+  end
+
+  describe "start_generation/2 - success path" do
+    test "runs full generation and marks story ready", %{scope: scope} do
+      {:ok, story} = Stories.create_story_async("The Roman Empire", scope)
+      Phoenix.PubSub.subscribe(Csci379Final.PubSub, "story:#{story.id}")
+
+      {:ok, _task} = Stories.start_generation(story.id, "The Roman Empire")
+
+      story_id = story.id
+      assert_receive {:story_ready, ^story_id}, 5000
+      updated = Csci379Final.Repo.get!(Story, story.id)
+      assert updated.status == :ready
+    end
+  end
+
+  describe "start_generation/2 - failure path" do
+    setup do
+      Application.put_env(:csci379_final, :ai_adapter, Csci379Final.FailAdapter)
+      on_exit(fn -> Application.put_env(:csci379_final, :ai_adapter, Csci379Final.AI.StubAdapter) end)
+    end
+
+    test "marks story failed when AI returns error", %{scope: scope} do
+      {:ok, story} = Stories.create_story_async("anything", scope)
+      Phoenix.PubSub.subscribe(Csci379Final.PubSub, "story:#{story.id}")
+
+      {:ok, _task} = Stories.start_generation(story.id, "anything")
+
+      assert_receive {:story_failed, _reason}, 5000
+      updated = Csci379Final.Repo.get!(Story, story.id)
+      assert updated.status == :failed
+    end
+  end
+
+  describe "start_generation/2 - crash path" do
+    setup do
+      Application.put_env(:csci379_final, :ai_adapter, Csci379Final.CrashAdapter)
+      on_exit(fn -> Application.put_env(:csci379_final, :ai_adapter, Csci379Final.AI.StubAdapter) end)
+    end
+
+    test "marks story failed when AI adapter crashes", %{scope: scope} do
+      {:ok, story} = Stories.create_story_async("anything", scope)
+      Phoenix.PubSub.subscribe(Csci379Final.PubSub, "story:#{story.id}")
+
+      {:ok, _task} = Stories.start_generation(story.id, "anything")
+
+      assert_receive {:story_failed, _reason}, 5000
+      updated = Csci379Final.Repo.get!(Story, story.id)
+      assert updated.status == :failed
+    end
+  end
+
+  describe "insert_tree with list options" do
+    setup do
+      Application.put_env(:csci379_final, :ai_adapter, Csci379Final.ListOptionsAdapter)
+      on_exit(fn -> Application.put_env(:csci379_final, :ai_adapter, Csci379Final.AI.StubAdapter) end)
+    end
+
+    test "handles options returned as a pre-built list from the AI adapter", %{scope: scope} do
+      {:ok, story} = Stories.create_story_async("list-opts", scope)
+      Phoenix.PubSub.subscribe(Csci379Final.PubSub, "story:#{story.id}")
+      {:ok, _task} = Stories.start_generation(story.id, "list-opts")
+      story_id = story.id
+      assert_receive {:story_ready, ^story_id}, 5000
     end
   end
 

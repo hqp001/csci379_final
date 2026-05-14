@@ -85,7 +85,13 @@ defmodule Csci379FinalWeb do
       # HTML escaping functionality
       import Phoenix.HTML
       # Core UI components
-      import Csci379FinalWeb.CoreComponents
+      import Csci379FinalWeb.Components.Icon
+      import Csci379FinalWeb.Components.Flash
+      import Csci379FinalWeb.Components.Button
+      import Csci379FinalWeb.Components.Input
+      import Csci379FinalWeb.Components.Header
+      import Csci379FinalWeb.Components.Table
+      import Csci379FinalWeb.Components.List
 
       # High-level UI components
       import Csci379FinalWeb.Components.Card

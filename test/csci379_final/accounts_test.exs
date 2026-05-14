@@ -77,11 +77,11 @@ defmodule Csci379Final.AccountsTest do
       assert "has already been taken" in errors_on(changeset).email
     end
 
-    test "registers users without password" do
+    test "registers users with hashed password" do
       email = unique_user_email()
       {:ok, user} = Accounts.register_user(valid_user_attributes(email: email))
       assert user.email == email
-      assert is_nil(user.hashed_password)
+      assert is_binary(user.hashed_password)
       assert is_nil(user.confirmed_at)
       assert is_nil(user.password)
     end
@@ -331,7 +331,7 @@ defmodule Csci379Final.AccountsTest do
 
   describe "login_user_by_magic_link/1" do
     test "confirms user and expires tokens" do
-      user = unconfirmed_user_fixture()
+      {:ok, user} = Repo.insert(%User{email: unique_user_email()})
       refute user.confirmed_at
       {encoded_token, hashed_token} = generate_user_magic_link_token(user)
 
@@ -392,6 +392,109 @@ defmodule Csci379Final.AccountsTest do
   describe "inspect/2 for the User module" do
     test "does not include password" do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
+    end
+  end
+
+  describe "deliver_welcome_email/1" do
+    test "sends welcome email to user", %{} do
+      user = user_fixture()
+      assert {:ok, email} = Accounts.deliver_welcome_email(user)
+      assert email.to == [{"", user.email}]
+    end
+  end
+
+  describe "confirm_user/1" do
+    test "confirms an unconfirmed user" do
+      user = unconfirmed_user_fixture()
+      assert is_nil(user.confirmed_at)
+      assert {:ok, confirmed} = Accounts.confirm_user(user)
+      assert confirmed.confirmed_at != nil
+    end
+  end
+
+  describe "find_or_create_user_from_oauth/1" do
+    test "returns existing user when oauth identity already exists" do
+      user = user_fixture()
+      Repo.insert!(%Csci379Final.Accounts.OauthIdentity{
+        provider: "google",
+        uid: "existing-uid",
+        user_id: user.id
+      })
+
+      assert {:ok, found} =
+               Accounts.find_or_create_user_from_oauth(%{
+                 provider: "google",
+                 uid: "existing-uid",
+                 email: user.email
+               })
+
+      assert found.id == user.id
+    end
+
+    test "creates new user and oauth identity for unknown uid and email" do
+      email = unique_user_email()
+
+      assert {:ok, new_user} =
+               Accounts.find_or_create_user_from_oauth(%{
+                 provider: "google",
+                 uid: "new-uid-#{System.unique_integer()}",
+                 email: email
+               })
+
+      assert new_user.email == email
+      assert new_user.confirmed_at != nil
+    end
+
+    test "links oauth identity to existing email user" do
+      existing_user = user_fixture()
+
+      assert {:ok, linked_user} =
+               Accounts.find_or_create_user_from_oauth(%{
+                 provider: "google",
+                 uid: "link-uid-#{System.unique_integer()}",
+                 email: existing_user.email
+               })
+
+      assert linked_user.id == existing_user.id
+    end
+  end
+
+  describe "UserToken invalid base64" do
+    alias Csci379Final.Accounts.UserToken
+
+    test "verify_magic_link_token_query returns error for invalid token" do
+      assert :error = UserToken.verify_magic_link_token_query("!!!not-base64!!!")
+    end
+
+    test "verify_change_email_token_query returns error for invalid token" do
+      assert :error =
+               UserToken.verify_change_email_token_query(
+                 "!!!not-base64!!!",
+                 "change:old@example.com"
+               )
+    end
+  end
+
+  describe "UserNotifier confirmed user magic link" do
+    test "sends magic link (not confirmation) to confirmed user", %{} do
+      user = user_fixture()
+      assert user.confirmed_at != nil
+
+      token =
+        extract_user_token(fn url ->
+          Accounts.deliver_login_instructions(user, url)
+        end)
+
+      {:ok, token_bin} = Base.url_decode64(token, padding: false)
+      assert user_token = Repo.get_by(UserToken, token: :crypto.hash(:sha256, token_bin))
+      assert user_token.context == "login"
+    end
+  end
+
+  describe "User.valid_password?/2" do
+    test "returns false and runs timing mitigation for users without a password" do
+      user = %User{hashed_password: nil}
+      refute User.valid_password?(user, "somepassword")
     end
   end
 end

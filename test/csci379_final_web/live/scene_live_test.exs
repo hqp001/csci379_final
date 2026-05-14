@@ -114,4 +114,87 @@ defmodule Csci379FinalWeb.SceneLiveTest do
       assert html =~ "Already Completed"
     end
   end
+
+  describe "SceneLive.Show - short_answer quest" do
+    setup %{conn: conn, scope: scope, story: story} do
+      chapter = chapter_fixture(story)
+      scene_sa = scene_fixture(chapter, %{position: 2, is_locked: false})
+
+      {:ok, sa_quest} =
+        Csci379Final.Stories.Quest
+        |> struct()
+        |> Csci379Final.Stories.Quest.changeset(%{
+          type: :short_answer,
+          question: "Explain the fall of Rome.",
+          options: [],
+          correct_answer: "Many factors contributed.",
+          explanation: "Complex causes.",
+          position: 1,
+          scene_id: scene_sa.id
+        })
+        |> Csci379Final.Repo.insert()
+
+      %{scene_sa: scene_sa, sa_quest: sa_quest}
+    end
+
+    test "renders short answer textarea", %{conn: conn, story: story, scene_sa: scene_sa} do
+      {:ok, _lv, html} = live(conn, ~p"/stories/#{story.id}/scenes/#{scene_sa.id}")
+      assert html =~ "Explain the fall of Rome"
+    end
+
+    test "answer_changed updates current_answer", %{conn: conn, story: story, scene_sa: scene_sa} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/#{story.id}/scenes/#{scene_sa.id}")
+      lv |> render_hook("answer_changed", %{"answer" => "my answer"})
+      assert render(lv) =~ "my answer"
+    end
+
+    test "submit short answer triggers grading phase", %{conn: conn, story: story, scene_sa: scene_sa} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/#{story.id}/scenes/#{scene_sa.id}")
+      html = lv |> form("form", %{answer: "my answer"}) |> render_submit()
+      assert html =~ "Grading" or html =~ "grading" or html =~ "Good answer"
+    end
+
+    test "stale grading ref is ignored", %{conn: conn, story: story, scene_sa: scene_sa} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/#{story.id}/scenes/#{scene_sa.id}")
+      stale_ref = make_ref()
+      send(lv.pid, {:graded, stale_ref, "answer", {:ok, %{is_correct: true, feedback: "Good"}}})
+      assert render(lv) =~ "Explain the fall"
+    end
+
+    test "graded message with error result shows could not grade", %{conn: conn, story: story, scene_sa: scene_sa} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/#{story.id}/scenes/#{scene_sa.id}")
+      lv |> form("form", %{answer: "my answer"}) |> render_submit()
+      grading_ref = :sys.get_state(lv.pid).socket.assigns.grading_ref
+      send(lv.pid, {:graded, grading_ref, "my answer", {:error, "oops"}})
+      assert render(lv) =~ "Could not grade"
+    end
+  end
+
+  describe "SceneLive.Show - fill_blank wrong answer shows correct answer" do
+    setup %{story: story} do
+      scene3 = scene_fixture(chapter_fixture(story), %{position: 3, is_locked: false})
+
+      {:ok, _} =
+        Csci379Final.Stories.Quest
+        |> struct()
+        |> Csci379Final.Stories.Quest.changeset(%{
+          type: :fill_blank,
+          question: "Rome fell in ___ AD.",
+          options: [],
+          correct_answer: "476",
+          explanation: "476 AD is the date.",
+          position: 1,
+          scene_id: scene3.id
+        })
+        |> Csci379Final.Repo.insert()
+
+      %{scene3: scene3}
+    end
+
+    test "submitting wrong fill answer shows correct answer", %{conn: conn, story: story, scene3: scene3} do
+      {:ok, lv, _html} = live(conn, ~p"/stories/#{story.id}/scenes/#{scene3.id}")
+      html = lv |> form("form", %{answer: "999"}) |> render_submit()
+      assert html =~ "476"
+    end
+  end
 end

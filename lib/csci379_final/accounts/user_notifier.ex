@@ -9,7 +9,7 @@ defmodule Csci379Final.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"LearnAI", "onboarding@resend.dev"})
+      |> from({"LearnAI", "noreply@learningai.com"})
       |> subject(subject)
       |> text_body(body)
 
@@ -85,8 +85,8 @@ defmodule Csci379Final.Accounts.UserNotifier do
     """)
   end
 
-  defp deliver_confirmation_instructions(user, url) do
-    deliver(user.email, "Confirmation instructions", """
+  def deliver_confirmation_instructions(user, url) do
+    deliver(user.email, "Confirm your LearnAI account", """
 
     ==============================
 
@@ -97,6 +97,25 @@ defmodule Csci379Final.Accounts.UserNotifier do
     #{url}
 
     If you didn't create an account with us, please ignore this.
+
+    ==============================
+    """)
+  end
+
+  def deliver_reset_password_instructions(user, url) do
+    deliver(user.email, "Reset your LearnAI password", """
+
+    ==============================
+
+    Hi #{user.email},
+
+    You can reset your password by visiting the URL below:
+
+    #{url}
+
+    This link is valid for 60 minutes.
+
+    If you didn't request a password reset, please ignore this.
 
     ==============================
     """)

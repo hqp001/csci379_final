@@ -2,11 +2,34 @@ defmodule Csci379Final.AI.OpenAIAdapter do
   @behaviour Csci379Final.AI.GeneratorPort
 
   @impl true
-  def generate_story(topic) do
+  def generate_story(%{topic: topic, pdf_data: nil}) do
+    call_completion([%{role: "user", content: build_prompt(topic)}])
+  end
+
+  def generate_story(%{topic: topic, pdf_data: pdf_data} = params) do
+    pdf_name = Map.get(params, :pdf_name) || "document.pdf"
+
+    messages = [
+      %{
+        role: "user",
+        content: [
+          %{
+            type: "file",
+            file: %{filename: pdf_name, file_data: "data:application/pdf;base64,#{pdf_data}"}
+          },
+          %{type: "text", text: build_prompt(topic)}
+        ]
+      }
+    ]
+
+    call_completion(messages)
+  end
+
+  defp call_completion(messages) do
     case OpenAI.chat_completion(
            model: "gpt-4o-mini",
            response_format: %{type: "json_object"},
-           messages: [%{role: "user", content: build_prompt(topic)}]
+           messages: messages
          ) do
       {:ok, %{choices: [%{"message" => %{"content" => content}} | _]}} ->
         {:ok, Jason.decode!(content)}

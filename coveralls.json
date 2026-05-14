@@ -1,0 +1,17 @@
+{
+  "skip_files": [
+    "lib/csci379_final/ai/openai_adapter.ex",
+    "lib/csci379_final/ai/generator_port.ex",
+    "lib/csci379_final/application.ex",
+    "lib/csci379_final/mailer.ex",
+    "lib/csci379_final/repo.ex",
+    "lib/csci379_final_web/telemetry.ex",
+    "lib/csci379_final_web/router.ex",
+    "lib/csci379_final_web/endpoint.ex",
+    "lib/csci379_final_web/gettext.ex",
+    "lib/csci379_final_web/controllers/page_html.ex",
+    "lib/csci379_final_web/controllers/user_registration_html.ex",
+    "lib/csci379_final_web/controllers/user_session_html.ex",
+    "lib/csci379_final_web/controllers/user_settings_html.ex"
+  ]
+}

@@ -2,7 +2,7 @@ defmodule Csci379Final.AI.StubAdapter do
   @behaviour Csci379Final.AI.GeneratorPort
 
   @impl true
-  def generate_story(_topic) do
+  def generate_story(_params) do
     {:ok,
      %{
        "title" => "The Roman Empire",

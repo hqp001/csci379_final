@@ -37,7 +37,7 @@ defmodule Csci379FinalWeb.DashboardLiveTest do
 
     lv |> element("button[phx-value-id='#{story.id}']") |> render_click()
     html = lv |> element("button[phx-click='cancel_delete']") |> render_click()
-    refute html =~ "Delete this story?"
+    assert html =~ "opacity-0 pointer-events-none"
   end
 
   test "delete_story removes the story", %{conn: conn, scope: scope} do

@@ -35,14 +35,14 @@ defmodule Csci379FinalWeb.Layouts do
 
   def app(assigns) do
     ~H"""
-    <header class="bg-white border-b border-slate-200 px-8 py-4">
+    <header class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-8 py-4">
       <a href="/" class="inline-flex items-center gap-2.5">
         <svg width="24" height="29" viewBox="0 0 28 34" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M14 0C6.268 0 0 6.268 0 14C0 24.5 14 34 14 34C14 34 28 24.5 28 14C28 6.268 21.732 0 14 0Z" fill="#4f46e5"/>
           <path d="M14 7L15.8 12.2H21.4L16.8 15.4L18.4 20.8L14 17.6L9.6 20.8L11.2 15.4L6.6 12.2H12.2L14 7Z" fill="#fbbf24"/>
         </svg>
         <span class="font-bold text-base" style="font-family: 'Outfit', sans-serif;">
-          <span class="text-slate-900">Learn</span><span class="text-indigo-600">AI</span>
+          <span class="text-slate-900 dark:text-white">Learn</span><span class="text-indigo-600">AI</span>
         </span>
       </a>
     </header>

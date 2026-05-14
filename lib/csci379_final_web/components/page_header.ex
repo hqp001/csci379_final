@@ -1,6 +1,6 @@
 defmodule Csci379FinalWeb.Components.PageHeader do
   use Phoenix.Component
-  import Csci379FinalWeb.CoreComponents, only: [icon: 1]
+  import Csci379FinalWeb.Components.Icon, only: [icon: 1]
 
   @doc """
   A page-level header with an optional back-navigation link, title, subtitle, and actions slot.
@@ -27,15 +27,15 @@ defmodule Csci379FinalWeb.Components.PageHeader do
       <.link
         :if={@back_navigate}
         navigate={@back_navigate}
-        class="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+        class="mb-4 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
       >
         <.icon name="hero-arrow-left" class="size-3.5" />
         {@back_label}
       </.link>
       <div class={[@actions != [] && "flex items-start justify-between gap-6"]}>
         <div>
-          <h1 class="text-3xl font-bold text-slate-900">{render_slot(@inner_block)}</h1>
-          <p :if={@subtitle != []} class="mt-1 text-slate-500">{render_slot(@subtitle)}</p>
+          <h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">{render_slot(@inner_block)}</h1>
+          <p :if={@subtitle != []} class="mt-1 text-slate-500 dark:text-slate-400">{render_slot(@subtitle)}</p>
         </div>
         <div :if={@actions != []} class="flex-none">{render_slot(@actions)}</div>
       </div>

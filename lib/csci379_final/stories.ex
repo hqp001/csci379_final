@@ -36,12 +36,16 @@ defmodule Csci379Final.Stories do
     |> Repo.insert()
   end
 
-  def start_generation(story_id, topic) do
+  def start_generation(story_id, topic) when is_binary(topic) do
+    start_generation(story_id, %{topic: topic, pdf_data: nil, pdf_name: nil})
+  end
+
+  def start_generation(story_id, %{topic: _} = params) do
     parent = self()
 
     Task.Supervisor.start_child(Csci379Final.TaskSupervisor, fn ->
       maybe_allow_sandbox(parent)
-      run_generation(story_id, topic)
+      run_generation(story_id, params)
     end)
   end
 
@@ -49,10 +53,10 @@ defmodule Csci379Final.Stories do
     Repo.delete(story)
   end
 
-  defp run_generation(story_id, topic) do
+  defp run_generation(story_id, params) do
     broadcast(story_id, {:progress, Enum.at(@progress_steps, 0)})
 
-    case AI.generate_story(topic) do
+    case AI.generate_story(params) do
       {:ok, data} ->
         broadcast(story_id, {:progress, Enum.at(@progress_steps, 1)})
         insert_tree(story_id, data)

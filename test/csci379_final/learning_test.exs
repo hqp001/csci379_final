@@ -79,6 +79,41 @@ defmodule Csci379Final.LearningTest do
       updated = Csci379Final.Repo.get!(Csci379Final.Stories.Scene, scene2.id)
       assert updated.is_locked == false
     end
+
+    test "unlocks first scene of next chapter when current chapter is done", %{scope: scope} do
+      other_scope = user_scope_fixture()
+      story = story_fixture(other_scope)
+      ch1 = chapter_fixture(story, %{position: 1})
+      ch2 = chapter_fixture(story, %{position: 2})
+      last_scene_ch1 = scene_fixture(ch1, %{position: 1, is_locked: false})
+      first_scene_ch2 = scene_fixture(ch2, %{position: 1, is_locked: true})
+
+      Learning.complete_scene(other_scope, last_scene_ch1.id, 1, 1)
+
+      updated = Csci379Final.Repo.get!(Csci379Final.Stories.Scene, first_scene_ch2.id)
+      assert updated.is_locked == false
+    end
+
+    test "handles completion when no next scene and no next chapter", %{scope: scope} do
+      other_scope = user_scope_fixture()
+      story = story_fixture(other_scope)
+      chapter = chapter_fixture(story, %{position: 1})
+      only_scene = scene_fixture(chapter, %{position: 1, is_locked: false})
+
+      assert {:ok, xp} = Learning.complete_scene(other_scope, only_scene.id, 1, 1)
+      assert xp > 0
+    end
+
+    test "handles completion when next chapter has no first scene", %{scope: scope} do
+      other_scope = user_scope_fixture()
+      story = story_fixture(other_scope)
+      ch1 = chapter_fixture(story, %{position: 1})
+      _ch2 = chapter_fixture(story, %{position: 2})
+      only_scene_ch1 = scene_fixture(ch1, %{position: 1, is_locked: false})
+
+      assert {:ok, xp} = Learning.complete_scene(other_scope, only_scene_ch1.id, 1, 1)
+      assert xp > 0
+    end
   end
 
   describe "get_user_stats/1" do
@@ -117,12 +152,59 @@ defmodule Csci379Final.LearningTest do
       assert Learning.list_xp_history(scope.user.id) == []
     end
 
-    test "returns cumulative XP data points", %{scope: scope, scene: scene} do
+    test "returns XP grouped by story", %{scope: scope, scene: scene} do
       Learning.complete_scene(scope, scene.id, 2, 3)
       history = Learning.list_xp_history(scope.user.id)
       assert length(history) == 1
-      assert [%{date: _, xp: xp}] = history
+      assert [%{label: _, xp: xp}] = history
       assert xp > 0
+    end
+  end
+
+  describe "list_completed_stories/1" do
+    test "returns empty list for new user", %{scope: scope} do
+      assert Learning.list_completed_stories(scope.user.id) == []
+    end
+
+    test "returns stories with at least one scene completion", %{scope: scope, scene: scene, story: story} do
+      Learning.complete_scene(scope, scene.id, 1, 1)
+      stories = Learning.list_completed_stories(scope.user.id)
+      assert length(stories) == 1
+      assert hd(stories).id == story.id
+    end
+  end
+
+  describe "list_xp_by_story/2" do
+    test "returns empty list when no completions for story", %{scope: scope, story: story} do
+      assert Learning.list_xp_by_story(scope.user.id, story.id) == []
+    end
+
+    test "returns per-scene XP for a story", %{scope: scope, scene: scene, story: story} do
+      Learning.complete_scene(scope, scene.id, 2, 3)
+      history = Learning.list_xp_by_story(scope.user.id, story.id)
+      assert length(history) == 1
+      assert [%{label: _, xp: xp}] = history
+      assert xp > 0
+    end
+  end
+
+  describe "list_story_progress/1" do
+    test "returns empty list when user has no stories" do
+      empty_scope = user_scope_fixture()
+      assert Learning.list_story_progress(empty_scope.user.id) == []
+    end
+
+    test "returns progress for each ready story", %{scope: scope, story: story, scene: scene} do
+      progress = Learning.list_story_progress(scope.user.id)
+      assert length(progress) == 1
+      [entry] = progress
+      assert entry.id == story.id
+      assert entry.total_scenes > 0
+      assert entry.completed_scenes == 0
+
+      Learning.complete_scene(scope, scene.id, 1, 1)
+      [updated] = Learning.list_story_progress(scope.user.id)
+      assert updated.completed_scenes == 1
     end
   end
 end

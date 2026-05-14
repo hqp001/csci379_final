@@ -2,7 +2,7 @@ defmodule Csci379Final.Learning do
   import Ecto.Query
   alias Csci379Final.Repo
   alias Csci379Final.Learning.{QuestAttempt, SceneCompletion}
-  alias Csci379Final.Stories.{Chapter, Scene, Quest}
+  alias Csci379Final.Stories.{Chapter, Scene, Quest, Story}
 
   @xp_per_correct 10
   @xp_scene_bonus 50
@@ -95,20 +95,62 @@ defmodule Csci379Final.Learning do
     )
   end
 
-  def list_xp_history(user_id) do
-    completions =
-      Repo.all(
-        from sc in SceneCompletion,
-          where: sc.user_id == ^user_id,
-          order_by: [asc: sc.completed_at],
-          select: {sc.completed_at, sc.xp_earned}
-      )
+  def list_story_progress(user_id) do
+    Repo.all(
+      from st in Story,
+        join: ch in assoc(st, :chapters),
+        join: sc in assoc(ch, :scenes),
+        left_join: comp in SceneCompletion,
+          on: comp.scene_id == sc.id and comp.user_id == ^user_id,
+        where: st.user_id == ^user_id and st.status == :ready,
+        group_by: st.id,
+        order_by: [asc: st.title],
+        select: %{
+          id: st.id,
+          title: st.title,
+          total_scenes: count(sc.id),
+          completed_scenes: count(comp.id)
+        }
+    )
+  end
 
-    completions
-    |> Enum.scan({nil, 0}, fn {date, xp}, {_, cum} -> {date, cum + xp} end)
-    |> Enum.map(fn {date, cum_xp} ->
-      %{date: Calendar.strftime(date, "%b %d"), xp: cum_xp}
-    end)
+  def list_completed_stories(user_id) do
+    Repo.all(
+      from sc in SceneCompletion,
+        join: scene in assoc(sc, :scene),
+        join: ch in assoc(scene, :chapter),
+        join: st in assoc(ch, :story),
+        where: sc.user_id == ^user_id,
+        group_by: st.id,
+        order_by: [asc: min(sc.completed_at)],
+        select: st
+    )
+  end
+
+  def list_xp_by_story(user_id, story_id) do
+    Repo.all(
+      from sc in SceneCompletion,
+        join: scene in assoc(sc, :scene),
+        join: ch in assoc(scene, :chapter),
+        where: sc.user_id == ^user_id and ch.story_id == ^story_id,
+        order_by: [asc: ch.position, asc: scene.position],
+        select: {scene.title, sc.xp_earned}
+    )
+    |> Enum.map(fn {title, xp} -> %{label: title, xp: xp} end)
+  end
+
+  def list_xp_history(user_id) do
+    Repo.all(
+      from sc in SceneCompletion,
+        join: scene in assoc(sc, :scene),
+        join: ch in assoc(scene, :chapter),
+        join: st in assoc(ch, :story),
+        where: sc.user_id == ^user_id,
+        group_by: st.id,
+        order_by: [asc: min(sc.completed_at)],
+        select: {st.title, sum(sc.xp_earned)}
+    )
+    |> Enum.map(fn {title, xp} -> %{label: title, xp: xp} end)
   end
 
   defp unlock_next_scene(scene_id) do
