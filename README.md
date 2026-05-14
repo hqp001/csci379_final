@@ -2,10 +2,41 @@
 
 An AI-powered interactive learning platform. Enter any topic and the app generates a structured story with chapters, scenes, and quests (multiple choice, fill-in-the-blank, short answer). Complete scenes to earn XP and unlock the next one.
 
+## Prerequisites
+
+- **Elixir** 1.16+ and **Erlang/OTP** 26+ — install via [asdf](https://asdf-vm.com/) or [mise](https://mise.jdx.dev/)
+- **PostgreSQL** — easiest via Docker (see below), or install locally on port **5433**
+- **Node.js** 18+ (for asset building)
+
+## Database setup
+
+The app expects Postgres on **port 5433** (user `postgres`, password `postgres`). The easiest path is Docker:
+
+```bash
+docker compose up -d
+```
+
+Or if you have Postgres installed locally, make sure it's running on port 5433, or set `DB_PORT` in your `.env` to match your port.
+
+## Environment variables
+
+```bash
+cp .env.example .env
+```
+
+Then fill in the values:
+
+| Variable | Required | Notes |
+|---|---|---|
+| `OPENAI_API_KEY` | Yes | AI story generation. Need one for testing? Email me at **hungqpham212004@gmail.com** and I'll provide one. Otherwise get yours at [platform.openai.com](https://platform.openai.com). |
+| `GOOGLE_CLIENT_ID` | Yes | Google OAuth. Create credentials at [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → Credentials. Redirect URI: `http://localhost:4000/auth/google/callback`. |
+| `GOOGLE_CLIENT_SECRET` | Yes | Same Google OAuth credentials. |
+| `RESEND_API_KEY` | **Prod only** | Not needed in dev — emails show up at `/dev/mailbox` locally. Only required for production deploys. |
+| `DB_PORT` | No | Defaults to `5433`. |
+
 ## Running the app
 
 ```bash
-cp .env.example .env        # fill in OPENAI_API_KEY, RESEND_API_KEY, GOOGLE_CLIENT_ID/SECRET
 mix setup                   # install deps, create DB, migrate, build assets
 mix dev                     # start server at http://localhost:4000
 ```
