@@ -11,7 +11,7 @@ defmodule Csci379FinalWeb.StoryLive.New do
      |> assign(:status, :idle)
      |> assign(:progress, [])
      |> assign(:error, nil)
-     |> allow_upload(:source_file, accept: ~w(.txt .md .pdf), max_entries: 1, max_file_size: 10_000_000)}
+     |> allow_upload(:source_file, accept: ~w(.txt .md .pdf), max_entries: 1, max_file_size: 2_000_000)}
   end
 
   def handle_event("validate", %{"topic" => topic}, socket) do
@@ -27,14 +27,14 @@ defmodule Csci379FinalWeb.StoryLive.New do
       gen_params =
         case consume_uploaded_entries(socket, :source_file, fn %{path: path}, entry ->
           if String.ends_with?(entry.client_name, ".pdf") do
-            {:ok, {:pdf, File.read!(path), entry.client_name}}
+            case System.cmd("pdftotext", [path, "-"], stderr_to_stdout: false) do
+              {text, 0} -> {:ok, {:text, text}}
+              _ -> {:ok, {:text, ""}}
+            end
           else
             {:ok, {:text, File.read!(path)}}
           end
         end) do
-          [{:pdf, data, name}] ->
-            %{topic: topic, pdf_data: Base.encode64(data), pdf_name: name}
-
           [{:text, text}] ->
             full = "#{topic}\n\nAdditional context from uploaded document:\n#{String.slice(text, 0, 4000)}"
             %{topic: full, pdf_data: nil, pdf_name: nil}

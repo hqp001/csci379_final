@@ -6,36 +6,6 @@ defmodule Csci379Final.AI.OpenAIAdapter do
     call_completion([%{role: "user", content: build_prompt(topic)}])
   end
 
-  def generate_story(%{topic: topic, pdf_data: pdf_data} = params) do
-    pdf_name = Map.get(params, :pdf_name) || "document.pdf"
-    tmp_path = Path.join(System.tmp_dir!(), "#{:erlang.unique_integer([:positive])}_#{pdf_name}")
-
-    File.write!(tmp_path, Base.decode64!(pdf_data))
-
-    try do
-      case OpenAI.Files.upload(tmp_path, purpose: "user_data") do
-        {:ok, %{id: file_id}} ->
-          messages = [
-            %{
-              role: "user",
-              content: [
-                %{type: "file", file: %{file_id: file_id}},
-                %{type: "text", text: build_prompt(topic)}
-              ]
-            }
-          ]
-
-          result = call_completion(messages)
-          OpenAI.Files.delete(file_id)
-          result
-
-        {:error, reason} ->
-          {:error, "Failed to upload PDF to OpenAI: #{inspect(reason)}"}
-      end
-    after
-      File.rm(tmp_path)
-    end
-  end
 
   defp call_completion(messages) do
     case OpenAI.chat_completion(
