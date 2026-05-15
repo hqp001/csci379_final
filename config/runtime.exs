@@ -40,6 +40,14 @@ if config_env() == :prod do
     System.get_env("PORT") ||
       raise "environment variable PORT is missing."
 
+  resend_api_key =
+    System.get_env("RESEND_API_KEY") ||
+      raise "environment variable RESEND_API_KEY is missing."
+
+  config :csci379_final, Csci379Final.Mailer,
+    adapter: Swoosh.Adapters.Resend,
+    api_key: resend_api_key
+
   config :csci379_final, Csci379Final.Repo,
     url: database_url,
     pool_size: String.to_integer(System.get_env("POOL_SIZE") || "2")
