@@ -76,7 +76,7 @@ config :phoenix, :json_library, Jason
 
 config :ueberauth, Ueberauth,
   providers: [
-    google: {Ueberauth.Strategy.Google, [default_scope: "email profile"]}
+    google: {Ueberauth.Strategy.Google, [default_scope: "email profile", callback_url: "https://eg.bucknell.edu/csci379e/auth/google/callback"]}
   ]
 
 # Import environment specific config. This must remain at the bottom
