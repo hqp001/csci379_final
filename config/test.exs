@@ -9,11 +9,7 @@ config :bcrypt_elixir, :log_rounds, 1
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
 config :csci379_final, Csci379Final.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  port: String.to_integer(System.get_env("DB_PORT") || "5433"),
-  database: "csci379_final_test#{System.get_env("MIX_TEST_PARTITION")}",
+  url: System.get_env("DATABASE_URL_DEV"),
   pool: Ecto.Adapters.SQL.Sandbox,
   pool_size: System.schedulers_online() * 2
 
