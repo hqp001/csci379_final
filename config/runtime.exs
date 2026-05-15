@@ -28,7 +28,8 @@ if config_env() == :dev do
         ip: {0, 0, 0, 0, 0, 0, 0, 0},
         port: String.to_integer(System.get_env("PORT", "4505"))
       ],
-      check_origin: ["https://eg.bucknell.edu"]
+      check_origin: ["https://eg.bucknell.edu"],
+      force_ssl: [rewrite_on: [:x_forwarded_proto]]
   end
 end
 
