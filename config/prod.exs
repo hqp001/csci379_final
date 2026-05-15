@@ -14,3 +14,6 @@ config :swoosh, api_client: false
 config :swoosh, local: true
 
 config :logger, level: :info
+
+# Enable mailbox preview so emails can be tested at /dev/mailbox
+config :csci379_final, dev_routes: true
