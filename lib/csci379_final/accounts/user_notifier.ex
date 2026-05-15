@@ -10,7 +10,7 @@ defmodule Csci379Final.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"LearnAI", "onboarding@resend.dev"})
+      |> from({"LearnAI", "noreply@learningai.com"})
       |> subject(subject)
       |> text_body(body)
 

@@ -34,9 +34,6 @@ defmodule Mix.Tasks.Deploy do
     secret_key_base = System.get_env("SECRET_KEY_BASE") ||
       raise "SECRET_KEY_BASE env var is missing"
 
-    resend_api_key = System.get_env("RESEND_API_KEY") ||
-      raise "RESEND_API_KEY env var is missing"
-
     port = System.get_env("PORT") ||
       raise "PORT env var is missing"
 
@@ -64,9 +61,9 @@ defmodule Mix.Tasks.Deploy do
     echo "Compiling..." && \
     MIX_ENV=prod mix compile > /dev/null || { exit 1; } && \
     echo "Removing old digested files..." && \
-    DATABASE_URL=#{db_url} OPENAI_API_KEY=#{openai_key} GOOGLE_CLIENT_ID=#{google_client_id} GOOGLE_CLIENT_SECRET=#{google_client_secret} SECRET_KEY_BASE=#{secret_key_base} RESEND_API_KEY=#{resend_api_key} PORT=#{port} MIX_ENV=prod mix phx.digest.clean --all > /dev/null || { exit 1; } && \
+    DATABASE_URL=#{db_url} OPENAI_API_KEY=#{openai_key} GOOGLE_CLIENT_ID=#{google_client_id} GOOGLE_CLIENT_SECRET=#{google_client_secret} SECRET_KEY_BASE=#{secret_key_base} PORT=#{port} MIX_ENV=prod mix phx.digest.clean --all > /dev/null || { exit 1; } && \
     echo "Migrating database..." && \
-    DATABASE_URL=#{db_url} OPENAI_API_KEY=#{openai_key} GOOGLE_CLIENT_ID=#{google_client_id} GOOGLE_CLIENT_SECRET=#{google_client_secret} SECRET_KEY_BASE=#{secret_key_base} RESEND_API_KEY=#{resend_api_key} PORT=#{port} MIX_ENV=prod mix ecto.migrate > /dev/null || { exit 1; } && \
+    DATABASE_URL=#{db_url} OPENAI_API_KEY=#{openai_key} GOOGLE_CLIENT_ID=#{google_client_id} GOOGLE_CLIENT_SECRET=#{google_client_secret} SECRET_KEY_BASE=#{secret_key_base} PORT=#{port} MIX_ENV=prod mix ecto.migrate > /dev/null || { exit 1; } && \
     echo "Deploying assets..." && \
     MIX_ENV=prod mix assets.deploy > /dev/null || { exit 1; } && \
     echo "(Re)starting server in tmux..." && \
@@ -76,7 +73,6 @@ defmodule Mix.Tasks.Deploy do
     export GOOGLE_CLIENT_ID='#{google_client_id}' && \
     export GOOGLE_CLIENT_SECRET='#{google_client_secret}' && \
     export SECRET_KEY_BASE='#{secret_key_base}' && \
-    export RESEND_API_KEY='#{resend_api_key}' && \
     export PORT='#{port}' && \
     module load elixir erlang >/dev/null && \
     MIX_ENV=prod mix phx.server" && \

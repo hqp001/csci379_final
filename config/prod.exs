@@ -9,8 +9,8 @@ config :ueberauth, Ueberauth,
     google: {Ueberauth.Strategy.Google, [default_scope: "email profile", callback_url: "https://eg.bucknell.edu/csci379e/auth/google/callback"]}
   ]
 
-config :swoosh, api_client: Swoosh.ApiClient.Req
-config :swoosh, local: false
+config :swoosh, api_client: false
+config :swoosh, local: true
 
 config :logger, level: :info
 
