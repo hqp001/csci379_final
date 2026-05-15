@@ -24,7 +24,10 @@ if config_env() == :dev do
   if System.get_env("PHX_HOST") == "eg.bucknell.edu" do
     config :csci379_final, Csci379FinalWeb.Endpoint,
       url: [host: "eg.bucknell.edu", path: "/csci379e", port: 443, scheme: "https"],
-      http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}],
+      http: [
+        ip: {0, 0, 0, 0, 0, 0, 0, 0},
+        port: String.to_integer(System.get_env("PORT", "4505"))
+      ],
       check_origin: ["https://eg.bucknell.edu"]
   end
 end
