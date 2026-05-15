@@ -31,6 +31,9 @@ defmodule Mix.Tasks.Deploy do
     google_client_secret = System.get_env("GOOGLE_CLIENT_SECRET") ||
       raise "GOOGLE_CLIENT_SECRET env var is missing"
 
+    secret_key_base = System.get_env("SECRET_KEY_BASE") ||
+      raise "SECRET_KEY_BASE env var is missing"
+
     port = System.get_env("PORT") ||
       raise "PORT env var is missing"
 
@@ -51,26 +54,26 @@ defmodule Mix.Tasks.Deploy do
     git reset --hard > /dev/null || { exit 1; } && \
     echo "Pulling latest code..." && \
     git pull > /dev/null || { exit 1; } && \
-    echo "Stopping all running servers (including old csci379)..." && \
+    echo "Stopping all running servers..." && \
     tmux kill-server >/dev/null || true && \
     echo "Loading dependencies..." && \
-    mix deps.get > /dev/null || { exit 1; } && \
-    echo "Compiling code..." && \
-    mix compile > /dev/null || { exit 1; } && \
+    MIX_ENV=prod mix deps.get --only prod > /dev/null || { exit 1; } && \
+    echo "Compiling..." && \
+    MIX_ENV=prod mix compile > /dev/null || { exit 1; } && \
     echo "Migrating database..." && \
-    DATABASE_URL_DEV=#{db_url} OPENAI_API_KEY=#{openai_key} GOOGLE_CLIENT_ID=#{google_client_id} GOOGLE_CLIENT_SECRET=#{google_client_secret} mix ecto.migrate > /dev/null || { exit 1; } && \
-    echo "Building assets..." && \
-    mix assets.build > /dev/null || { exit 1; } && \
+    DATABASE_URL=#{db_url} OPENAI_API_KEY=#{openai_key} GOOGLE_CLIENT_ID=#{google_client_id} GOOGLE_CLIENT_SECRET=#{google_client_secret} SECRET_KEY_BASE=#{secret_key_base} PORT=#{port} MIX_ENV=prod mix ecto.migrate > /dev/null || { exit 1; } && \
+    echo "Deploying assets..." && \
+    MIX_ENV=prod mix assets.deploy > /dev/null || { exit 1; } && \
     echo "(Re)starting server in tmux..." && \
     tmux new -d -s #{database} \
-    "export DATABASE_URL_DEV='#{db_url}' && \
+    "export DATABASE_URL='#{db_url}' && \
     export OPENAI_API_KEY='#{openai_key}' && \
     export GOOGLE_CLIENT_ID='#{google_client_id}' && \
     export GOOGLE_CLIENT_SECRET='#{google_client_secret}' && \
-    export PHX_HOST='eg.bucknell.edu' && \
+    export SECRET_KEY_BASE='#{secret_key_base}' && \
     export PORT='#{port}' && \
     module load elixir erlang >/dev/null && \
-    mix phx.server" && \
+    MIX_ENV=prod mix phx.server" && \
     echo "Deployment successful."
     """
 
