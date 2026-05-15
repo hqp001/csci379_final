@@ -3,17 +3,6 @@ import Config
 if config_env() == :dev do
   import Dotenvy
   source!([".env", System.get_env()]) |> System.put_env()
-
-  if System.get_env("PHX_HOST") == "eg.bucknell.edu" do
-    config :csci379_final, Csci379FinalWeb.Endpoint,
-      url: [host: "eg.bucknell.edu", path: "/csci379e", port: 443, scheme: "https"],
-      http: [
-        ip: {0, 0, 0, 0, 0, 0, 0, 0},
-        port: String.to_integer(System.get_env("PORT", "4505"))
-      ],
-      check_origin: ["https://eg.bucknell.edu"],
-      live_reload: [patterns: []]
-  end
 end
 
 if System.get_env("PHX_SERVER") do
@@ -33,21 +22,9 @@ if config_env() != :test do
     System.get_env("GOOGLE_CLIENT_SECRET") ||
       raise("environment variable GOOGLE_CLIENT_SECRET is missing.")
 
-  google_callback_url =
-    if System.get_env("PHX_HOST") == "eg.bucknell.edu" do
-      "https://eg.bucknell.edu/csci379e/auth/google/callback"
-    else
-      "http://localhost:4000/auth/google/callback"
-    end
-
   config :ueberauth, Ueberauth.Strategy.Google.OAuth,
     client_id: google_client_id,
     client_secret: google_client_secret
-
-  config :ueberauth, Ueberauth,
-    providers: [
-      google: {Ueberauth.Strategy.Google, [default_scope: "email profile", callback_url: google_callback_url]}
-    ]
 end
 
 if config_env() == :prod do
@@ -72,11 +49,8 @@ if config_env() == :prod do
     http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: String.to_integer(port)],
     secret_key_base: secret_key_base
 
-  resend_api_key =
-    System.get_env("RESEND_API_KEY") ||
-      raise "environment variable RESEND_API_KEY is missing."
-
-  config :csci379_final, Csci379Final.Mailer,
-    adapter: Swoosh.Adapters.Resend,
-    api_key: resend_api_key
+  config :ueberauth, Ueberauth,
+    providers: [
+      google: {Ueberauth.Strategy.Google, [default_scope: "email profile", callback_url: "https://eg.bucknell.edu/csci379e/auth/google/callback"]}
+    ]
 end
