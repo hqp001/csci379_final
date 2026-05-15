@@ -102,8 +102,7 @@ window.addEventListener("click", (e) => {
 })
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
-const basePath = (document.querySelector("meta[name='base-path']").getAttribute("content") || "").replace(/\/$/, "")
-const liveSocket = new LiveSocket(basePath + "/live", Socket, {
+const liveSocket = new LiveSocket(window.location.pathname.startsWith("/csci379e") ? "/csci379e/live" : "/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
   hooks: {...colocatedHooks, XpChart, AccuracyChart},
