@@ -52,9 +52,21 @@ if config_env() != :test do
     System.get_env("GOOGLE_CLIENT_SECRET") ||
       raise("environment variable GOOGLE_CLIENT_SECRET is missing.")
 
+  callback_url =
+    if System.get_env("PHX_HOST") == "eg.bucknell.edu" do
+      "https://eg.bucknell.edu/csci379e/auth/google/callback"
+    else
+      "http://localhost:4000/auth/google/callback"
+    end
+
   config :ueberauth, Ueberauth.Strategy.Google.OAuth,
     client_id: google_client_id,
     client_secret: google_client_secret
+
+  config :ueberauth, Ueberauth,
+    providers: [
+      google: {Ueberauth.Strategy.Google, [redirect_uri: callback_url]}
+    ]
 end
 
 if config_env() == :prod do
