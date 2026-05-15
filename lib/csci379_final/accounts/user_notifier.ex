@@ -1,5 +1,6 @@
 defmodule Csci379Final.Accounts.UserNotifier do
   import Swoosh.Email
+  require Logger
 
   alias Csci379Final.Mailer
   alias Csci379Final.Accounts.User
@@ -13,8 +14,12 @@ defmodule Csci379Final.Accounts.UserNotifier do
       |> subject(subject)
       |> text_body(body)
 
-    with {:ok, _metadata} <- Mailer.deliver(email) do
-      {:ok, email}
+    case Mailer.deliver(email) do
+      {:ok, _metadata} ->
+        {:ok, email}
+      {:error, reason} ->
+        Logger.error("Failed to deliver email to #{recipient}: #{inspect(reason)}")
+        {:error, reason}
     end
   end
 
