@@ -1,12 +1,16 @@
 import Config
 
+db_url =
+  System.get_env("DATABASE_URL_DEV") ||
+    raise """
+    environment variable DATABASE_URL_DEV is missing.
+    Example:
+      export DATABASE_URL_DEV=ecto://USER:PASSWORD@host/dbname
+    """
+
 # Configure your database
 config :csci379_final, Csci379Final.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  port: String.to_integer(System.get_env("DB_PORT") || "5433"),
-  database: "csci379_final_dev",
+  url: db_url,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -59,12 +63,12 @@ config :csci379_final, Csci379FinalWeb.Endpoint,
     web_console_logger: true,
     patterns: [
       # Static assets, except user uploads
-      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$"E,
+      ~r"priv/static/(?!uploads/).*\.(js|css|png|jpeg|jpg|gif|svg)$",
       # Gettext translations
-      ~r"priv/gettext/.*\.po$"E,
+      ~r"priv/gettext/.*\.po$",
       # Router, Controllers, LiveViews and LiveComponents
-      ~r"lib/csci379_final_web/router\.ex$"E,
-      ~r"lib/csci379_final_web/(controllers|live|components)/.*\.(ex|heex)$"E
+      ~r"lib/csci379_final_web/router\.ex$",
+      ~r"lib/csci379_final_web/(controllers|live|components)/.*\.(ex|heex)$"
     ]
   ]
 

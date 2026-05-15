@@ -19,6 +19,14 @@ import Config
 if config_env() == :dev do
   import Dotenvy
   source!([".env", System.get_env()]) |> System.put_env()
+
+  # When deployed to Bucknell in dev mode, override the endpoint URL and binding
+  if System.get_env("PHX_HOST") == "eg.bucknell.edu" do
+    config :csci379_final, Csci379FinalWeb.Endpoint,
+      url: [host: "eg.bucknell.edu", path: "/csci379e", port: 443, scheme: "https"],
+      http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}],
+      check_origin: ["https://eg.bucknell.edu"]
+  end
 end
 
 if System.get_env("PHX_SERVER") do
@@ -45,7 +53,7 @@ if config_env() != :test do
     client_secret: google_client_secret
 end
 
-if config_env() != :test do
+if config_env() == :prod do
   config :csci379_final, Csci379FinalWeb.Endpoint,
     http: [
       port:
@@ -86,17 +94,11 @@ if config_env() == :prod do
       You can generate one by calling: mix phx.gen.secret
       """
 
-  host = System.get_env("PHX_HOST") || "example.com"
-
   config :csci379_final, :dns_cluster_query, System.get_env("DNS_CLUSTER_QUERY")
 
   config :csci379_final, Csci379FinalWeb.Endpoint,
-    url: [host: host, port: 443, scheme: "https"],
+    url: [host: "eg.bucknell.edu", path: "/csci379e", port: 443, scheme: "https"],
     http: [
-      # Enable IPv6 and bind on all interfaces.
-      # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
-      # See the documentation on https://hexdocs.pm/bandit/Bandit.html#t:options/0
-      # for details about using IPv6 vs IPv4 and loopback vs public addresses.
       ip: {0, 0, 0, 0, 0, 0, 0, 0}
     ],
     secret_key_base: secret_key_base
