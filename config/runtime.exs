@@ -49,8 +49,4 @@ if config_env() == :prod do
     http: [ip: {0, 0, 0, 0, 0, 0, 0, 0}, port: String.to_integer(port)],
     secret_key_base: secret_key_base
 
-  config :ueberauth, Ueberauth,
-    providers: [
-      google: {Ueberauth.Strategy.Google, [default_scope: "email profile", callback_url: "https://eg.bucknell.edu/csci379e/auth/google/callback"]}
-    ]
 end
