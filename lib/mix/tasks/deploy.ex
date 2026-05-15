@@ -46,7 +46,7 @@ defmodule Mix.Tasks.Deploy do
     ssh_command = """
     echo "Loading environment..." && \
     module load elixir erlang > /dev/null || { exit 1; } && \
-    cd ~/workspace/csci379e_final && \
+    cd ~/workspace/csci379_final && \
     echo "Resetting any local changes..." && \
     git reset --hard > /dev/null || { exit 1; } && \
     echo "Pulling latest code..." && \
